@@ -1,0 +1,11 @@
+[package]
+name = "lab4"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+glam = "0.25"       
+raylib = "5.5.1" 
+tobj = "3.2"
+rand = "0.8"
+
