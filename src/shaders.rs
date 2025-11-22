@@ -12,6 +12,9 @@ pub enum ShaderType {
     Sun,
     Saturn,
     SaturnRing,
+    Uranus,
+    Neptune,
+    Spaceship,
 }
 
 fn multiply_matrix_vector4(matrix: &Matrix, vector: &Vector4) -> Vector4 {
@@ -396,6 +399,122 @@ pub fn sun_shader(fragment: &Fragment, time: f32) -> Vector3 {
     color
 }
 
+pub fn uranus_shader(fragment: &Fragment) -> Vector3 {
+    let u = fragment.color.y;
+    let v = fragment.color.z;
+    let uv = Vector2::new(u, v);
+
+    // Base cyan/azul claro (Urano)
+    let base = Vector3::new(0.65, 0.85, 0.92);
+    let band1 = Vector3::new(0.55, 0.75, 0.88);
+    let band2 = Vector3::new(0.45, 0.65, 0.80);
+    let haze = Vector3::new(0.85, 0.92, 0.98);
+
+    let noise1 = fbm2(uv * 4.0 + Vector2::new(5.0, 10.0), 2);
+    let noise2 = fbm2(uv * 8.0 + Vector2::new(15.0, 25.0), 2);
+    let noise3 = fbm2(uv * 16.0 + Vector2::new(100.0, 200.0), 2);
+
+    let mut color = base;
+
+    // bandas ecuatoriales más oscuras
+    if noise1 > 0.65 { color = band1; }
+    if noise2 < 0.35 { color = band2; }
+
+    // toques de bruma polar/clara
+    let polar_blend = smoothstep(0.85, 1.0, v.abs() - 0.5) + smoothstep(0.0, 0.15, v);
+    if polar_blend > 0.2 {
+        color = color * (1.0 - polar_blend * 0.3) + haze * polar_blend * 0.3;
+    }
+
+    // textura de nubes suaves
+    let cloud = fbm2(uv * 20.0, 2);
+    if cloud > 0.8 {
+        color = color * 0.9 + haze * 0.1;
+    }
+
+    color
+}
+
+pub fn neptune_shader(fragment: &Fragment) -> Vector3 {
+    let u = fragment.color.y;
+    let v = fragment.color.z;
+    let uv = Vector2::new(u, v);
+
+    // Más oscuro y azul intenso (Neptuno)
+    let base = Vector3::new(0.35, 0.55, 0.95);
+    let storm = Vector3::new(0.25, 0.40, 0.80);  // Gran Mancha Oscura
+    let bright_spot = Vector3::new(0.80, 0.90, 1.0);
+
+    let noise1 = fbm2(uv * 4.0, 3);
+    let noise2 = fbm2(uv * 8.0 + Vector2::new(30.0, 40.0), 3);
+
+    let mut color = base;
+
+    // bandas más marcadas
+    if noise1 > 0.7 { color = base * 0.85; }
+    if noise2 < 0.2 { color = storm; }
+
+    // simular la Gran Mancha Oscura (como en Júpiter pero azul)
+    let storm_center = Vector2::new(0.65, 0.4);
+    let dist = (uv.x - storm_center.x).hypot(uv.y - storm_center.y);
+    let storm_effect = smoothstep(0.15, 0.05, dist);
+    if storm_effect > 0.6 {
+        color = storm * (1.0 - storm_effect * 0.3) + base * storm_effect * 0.3;
+    }
+
+    // toques brillantes (nubes altas de metano)
+    let high_clouds = fbm2(uv * 25.0 + Vector2::new(100.0, 200.0), 2);
+    if high_clouds > 0.92 {
+        color = color * 0.7 + bright_spot * 0.3;
+    }
+
+    color
+}
+
+pub fn spaceship_shader(fragment: &Fragment, time: f32) -> Vector3 {
+    // Color base metálico plateado/gris
+    let metal_base = Vector3::new(0.7, 0.75, 0.8);
+    let metal_dark = Vector3::new(0.3, 0.35, 0.4);
+    let accent_blue = Vector3::new(0.2, 0.5, 1.0);
+    let accent_red = Vector3::new(1.0, 0.2, 0.2);
+    
+    let u = fragment.color.y;
+    let v = fragment.color.z;
+    let uv = Vector2::new(u, v);
+    
+    // Panel pattern
+    let panel_noise = fbm2(uv * 8.0, 2);
+    
+    let mut color = if panel_noise > 0.6 {
+        metal_base
+    } else {
+        metal_dark
+    };
+    
+    // Líneas de detalles
+    let lines = ((uv.x * 20.0).sin().abs() + (uv.y * 15.0).sin().abs()) * 0.5;
+    if lines > 0.9 {
+        color = color * 0.8;
+    }
+    
+    // Luces parpadeantes (ventanas o motores)
+    let light_pulse = (time * 3.0).sin() * 0.5 + 0.5;
+    let window_pattern = fbm2(uv * 30.0 + Vector2::new(100.0, 100.0), 1);
+    
+    if window_pattern > 0.95 {
+        color = color * 0.3 + accent_blue * 0.7 * light_pulse;
+    } else if window_pattern > 0.93 {
+        color = color * 0.3 + accent_red * 0.7 * light_pulse;
+    }
+    
+    // Reflejo especular sutil
+    let normal_y = fragment.normal.y;
+    let specular = (normal_y * 0.5 + 0.5).powf(2.0) * 0.2;
+    color = color + Vector3::new(specular, specular, specular);
+    
+    color
+}
+
 pub fn fragment_shaders(
     fragment: &Fragment,
     _uniforms: &Uniforms,
@@ -408,6 +527,9 @@ pub fn fragment_shaders(
         ShaderType::Sun => sun_shader(fragment, time),
         ShaderType::Saturn => saturn_shader(fragment),
         ShaderType::SaturnRing => saturn_ring_shader(fragment),
+        ShaderType::Uranus => uranus_shader(fragment),
+        ShaderType::Neptune => neptune_shader(fragment),
+        ShaderType::Spaceship => spaceship_shader(fragment, time),
     };
 
     if matches!(shader_type, ShaderType::Sun) {

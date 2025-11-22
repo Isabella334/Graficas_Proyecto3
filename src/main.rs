@@ -120,7 +120,7 @@ fn main() {
     let mut framebuffer = Framebuffer::new(window_width, window_height);
 
     let mut camera = Camera::new(
-        Vector3::new(0.0, 8.0, 20.0),
+        Vector3::new(0.0, 8.0, 30.0),
         Vector3::new(0.0, 0.0, 0.0),
         Vector3::new(0.0, 1.0, 0.0),
     );
@@ -129,6 +129,9 @@ fn main() {
 
     let obj = Obj::load("assets/models/sphere.obj").expect("No se pudo cargar sphere.obj");
     let vertex_array = obj.get_vertex_array();
+
+    let spaceship_obj = Obj::load("assets/models/spaceship.obj").expect("No se pudo cargar spaceship.obj");
+    let spaceship_vertices = spaceship_obj.get_vertex_array();
 
     framebuffer.set_background_color(Color::new(5, 5, 15, 255));
 
@@ -232,6 +235,73 @@ fn main() {
             is_ring: true,
         };
         render(&mut framebuffer, &saturn_ring_uniforms, &vertex_array, &light, ShaderType::SaturnRing, time);
+
+                // ====== Urano ======
+        let uranus_translation = Vector3::new(
+            17.5 * (time * 2.1).cos(),  // Órbita más grande y lenta que Saturno
+            0.0,
+            17.5 * (time * 2.1).sin(),
+        );
+        let uranus_model_matrix = create_model_matrix_y(
+            uranus_translation,
+            0.85,              // tamaño ligeramente menor que Saturno
+            time * 4.2,        // rotación más lenta
+        );
+        let uranus_uniforms = Uniforms {
+            model_matrix: uranus_model_matrix,
+            view_matrix,
+            projection_matrix,
+            viewport_matrix,
+            is_ring: false,
+        };
+        render(&mut framebuffer, &uranus_uniforms, &vertex_array, &light, ShaderType::Uranus, time);
+
+        // ====== Neptuno ======
+        let neptune_translation = Vector3::new(
+            26.0 * (time * 1.7).cos(),  // Órbita aún más grande y más lenta
+            0.0,
+            26.0 * (time * 1.7).sin(),
+        );
+        let neptune_model_matrix = create_model_matrix_y(
+            neptune_translation,
+            0.82,
+            time * 2.8,
+        );
+        let neptune_uniforms = Uniforms {
+            model_matrix: neptune_model_matrix,
+            view_matrix,
+            projection_matrix,
+            viewport_matrix,
+            is_ring: false,
+        };
+        render(&mut framebuffer, &neptune_uniforms, &vertex_array, &light, ShaderType::Neptune, time);
+
+        let orbit_radius = 6.0;
+        let orbit_speed = 2.5;
+        let elevation = 25.5;
+        let spin_speed = 2.0;
+
+        let spaceship_translation = Vector3::new(
+            100.0 * (time * 1.7).cos(),  // radio = 6.0, velocidad angular = 2.5
+            elevation,
+            100.0 * (time * 1.7).sin(),
+        );
+
+        let spaceship_model_matrix = create_model_matrix_y(
+            spaceship_translation,
+            0.08,       // ✅ más pequeña: 0.2 (antes era ~0.8 para planetas)
+            time * 2.8,       // ✅ rotación fija = 0.0 (no gira sobre sí misma)
+        );
+
+        let spaceship_uniforms = Uniforms {
+            model_matrix: spaceship_model_matrix,
+            view_matrix,
+            projection_matrix,
+            viewport_matrix,
+            is_ring: false,
+        };
+
+        render(&mut framebuffer, &spaceship_uniforms, &spaceship_vertices, &light, ShaderType::Spaceship, time);
         
         framebuffer.swap_buffers(&mut window, &raylib_thread);
         thread::sleep(Duration::from_millis(16));
