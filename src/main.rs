@@ -113,14 +113,14 @@ fn main() {
 
     let (mut window, raylib_thread) = raylib::init()
         .size(window_width, window_height)
-        .title("Sistema Solar - Shader Dinámico")
+        .title("Sistema Solar - Proyecto 3")
         .log_level(TraceLogLevel::LOG_WARNING)
         .build();
 
     let mut framebuffer = Framebuffer::new(window_width, window_height);
 
     let mut camera = Camera::new(
-        Vector3::new(0.0, 8.0, 30.0),
+        Vector3::new(0.0, 8.0, 28.0),
         Vector3::new(0.0, 0.0, 0.0),
         Vector3::new(0.0, 1.0, 0.0),
     );
