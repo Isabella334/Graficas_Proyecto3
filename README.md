@@ -22,7 +22,7 @@ Primero, asegúrate de tener [Rust](https://www.rust-lang.org/tools/install) ins
 Luego, clona y ejecuta en modo **release** (recomendado para mejor rendimiento):
 
 ```bash
-git clone https://github.com/tu-usuario/sistema-solar-rust.git
+git clone https://github.com/Isabella334/Graficas_Proyecto3.git
 cd sistema-solar-rust
 cargo run --release
 ```
