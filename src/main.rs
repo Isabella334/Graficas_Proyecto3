@@ -276,21 +276,24 @@ fn main() {
         };
         render(&mut framebuffer, &neptune_uniforms, &vertex_array, &light, ShaderType::Neptune, time);
 
-        let orbit_radius = 6.0;
-        let orbit_speed = 2.5;
-        let elevation = 25.5;
-        let spin_speed = 2.0;
+        // ====== Nave Espacial ======
+        let orbit_radius = 100.0;
+        let orbit_speed = 0.8;   // rad/s → controla traslación
+        let spin_speed  = -1.0;   // rad/s → controla rotación (igual = 1:1)
+        let elevation   = 25.5;
+        let scale       = 0.08;
 
+        let angle = time * orbit_speed;
         let spaceship_translation = Vector3::new(
-            100.0 * (time * 1.7).cos(),  // radio = 6.0, velocidad angular = 2.5
+            orbit_radius * angle.cos(),
             elevation,
-            100.0 * (time * 1.7).sin(),
+            orbit_radius * angle.sin(),
         );
 
         let spaceship_model_matrix = create_model_matrix_y(
             spaceship_translation,
-            0.08,       // ✅ más pequeña: 0.2 (antes era ~0.8 para planetas)
-            time * 2.8,       // ✅ rotación fija = 0.0 (no gira sobre sí misma)
+            scale,
+            time * spin_speed,   // ✅ independiente
         );
 
         let spaceship_uniforms = Uniforms {
