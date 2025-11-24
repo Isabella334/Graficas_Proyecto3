@@ -23,7 +23,7 @@ Luego, clona y ejecuta en modo **release** (recomendado para mejor rendimiento):
 
 ```bash
 git clone https://github.com/Isabella334/Graficas_Proyecto3.git
-cd sistema-solar-rust
+cd Graficas_Proyecto3
 cargo run --release
 ```
 ---
